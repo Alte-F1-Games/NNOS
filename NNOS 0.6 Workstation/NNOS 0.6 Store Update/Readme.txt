@@ -1,0 +1,1 @@
+Damit es funktioniert muss der Ordner NNOS Store auf C:\ liegen
