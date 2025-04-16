@@ -478,25 +478,47 @@ def open_clock():
             update_calendar()
 
     def update_calendar():
-        calendar_text.config(state='normal')
-        calendar_text.delete("1.0", tk.END)
-        cal = calendar.month(current_year, current_month)
-        calendar_text.insert(tk.END, cal + "\nClick a day to add/view reminders.\n")
+     calendar_text.config(state='normal')
+     calendar_text.delete("1.0", tk.END)
+     cal = calendar.month(current_year, current_month)
+     calendar_text.insert(tk.END, cal + "\nClick a day to add/view reminders.\n")
 
-        def on_click(event):
-            try:
-                index = calendar_text.index(f"@{event.x},{event.y}")
-                line = calendar_text.get(index + " linestart", index + " lineend")
-                tokens = line.split()
-                for token in tokens:
-                    if token.isdigit():
+    def on_click(event):
+        try:
+            index = calendar_text.index(f"@{event.x},{event.y}")
+            line_start = calendar_text.index(f"{index} linestart")
+            line_end = calendar_text.index(f"{index} lineend")
+            line = calendar_text.get(line_start, line_end)
+
+            char_index = int(index.split(".")[1])
+            
+            tokens = []
+            current = ""
+            start_pos = None
+            for i, ch in enumerate(line):
+                if ch != " ":
+                    if start_pos is None:
+                        start_pos = i
+                    current += ch
+                else:
+                    if current:
+                        tokens.append((start_pos, current))
+                        current = ""
+                        start_pos = None
+            if current:
+                tokens.append((start_pos, current))
+
+            for start, token in tokens:
+                if token.isdigit():
+                    end = start + len(token)
+                    if start <= char_index < end:
                         show_reminders(token)
                         break
-            except Exception as e:
-                print("Error:", e)
+        except Exception as e:
+            print("Error:", e)
 
-        calendar_text.bind("<Button-1>", on_click)
-        calendar_text.config(state='disabled')
+    calendar_text.bind("<Button-1>", on_click)
+    calendar_text.config(state='disabled')
 
     def change_month(delta):
         nonlocal current_month, current_year
